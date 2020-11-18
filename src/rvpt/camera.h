@@ -12,7 +12,7 @@ static const char* CameraModes[] = {"perspective", "orthographic", "spherical"};
 class Camera
 {
 public:
-    explicit Camera(float aspect);
+    explicit Camera(float aspect, glm::vec3 origin, glm::vec3 rotation);
 
     void move(glm::vec3 translation);
     void rotate(glm::vec3 rotation);

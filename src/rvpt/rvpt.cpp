@@ -33,7 +33,7 @@ bool RVPT::PreviousFrameState::operator==(RVPT::PreviousFrameState const& right)
 
 RVPT::RVPT(Window& window)
     : window_ref(window),
-      scene_camera(window.get_aspect_ratio()),
+      scene_camera(window.get_aspect_ratio(), glm::vec3(1.5, 2, -2), glm::vec3(-38, 36, 0)),
       random_generator(std::random_device{}()),
       distribution(0.0f, 1.0f)
 {

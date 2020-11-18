@@ -33,7 +33,25 @@ vec3 integrator_binary
 	 
 {
 
-	return vec3(intersect_scene_any(ray, mint, maxt));
+    Isect info;
+    
+    vec3 col = vec3(0);
+    if (!intersect_scene(ray, mint, maxt, info))
+            return col;
+
+    // CHANGED: direct lighting
+    Ray light_feeler = Ray(info.pos + 0.0001 * info.normal, spheres[0].origin - info.pos); // position of light
+    Isect temp_info;
+    if (intersect_scene(light_feeler, mint, maxt, temp_info)) {
+        if (distance(temp_info.pos, spheres[0].origin) <= spheres[0].radius + 0.001) {
+            return info.mat.base_color;
+        } else {
+            return vec3(0);
+        }
+    } // end of direct lighting
+
+    // everything below is what they used to have
+	//return vec3(intersect_scene_any(ray, mint, maxt));
 
 } /* integrator_binary */
 
@@ -559,13 +577,14 @@ vec3 integrator_Kajiya
     vec3 white = vec3(1);
     vec3 blue = vec3(0.2,0.3,0.7);
 	vec3 background;
-	
+
 	for (int i=0; i<nbounce; ++i)
 	{
 	
         /* intersected nothing -> background */
-        if (!intersect_scene (ray, mint, maxt, info))
-            return col + throughput*mix(white, blue, ray.direction.y);
+        if (!intersect_scene(ray, mint, maxt, info))
+            return col; // CHANGED: this makes background black. Statement below makes background white. 
+            //return col + throughput*mix(white, blue, ray.direction.y);
         
         /* intersected an object -> add emission */
         col += throughput*info.mat.emissive;

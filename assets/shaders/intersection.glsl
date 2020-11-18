@@ -521,6 +521,166 @@ bool intersect_scene
 		}
 		closest_t = min(temp_isect.t, closest_t);
 	}
+
+	// CHANGED: added floor
+	intersect_plane(ray, -0.5, vec3(0, 1, 0), mint, maxt, temp_isect);
+	if (temp_isect.t<closest_t)
+	{
+		info = temp_isect;
+		Material mat = materials[2]; // TO DO: Don't hard code this
+		info.mat = convert_old_material(mat);
+	}
+	closest_t = min(temp_isect.t, closest_t);
+	
+	info.normal = closest_t<INF? normalize(info.normal) : vec3(0);
+					
+	info.pos = closest_t<INF? ray.origin + info.t * ray.direction : vec3(0);
+	
+	return closest_t<INF;
+	
+} /* intersect_scene */
+
+/*--------------------------------------------------------------------------*/
+
+bool intersect_face
+
+	(Ray       ray,  /* ray for the intersection */
+	 vec3      center,    /* offset of the plane: <o,n>, o: point on plane */
+	 vec3      min_coord,
+	 vec3      max_coord,
+	 vec3      n,    /* normal of the plane (not necessarily unit length) */
+	 float     mint, /* lower bound for t */
+	 float     maxt, /* upper bound for t */
+	 out Isect info) /* intersection data */
+	
+/*
+	Returns true if there is an intersection with the plane with the 
+	equation: <p,n> = d. The intersection is accepted if it is in 
+	(mint, maxt) along the ray.
+	
+	Also computes the normal along the ray.
+	
+	For the derivation see the appendix.
+*/
+	
+{
+	float denom = dot(ray.direction, n);
+	if (abs(denom) > 0.0001) {
+    	float t = dot((center - ray.origin), n) / denom;
+    	bool isect = mint < t && t < maxt;
+    	return isect;
+    	/*
+    	// if there is an intersection to the plane, we need 
+	    // to see if its inside the face
+		if (isect) {
+			vec3 point = ray.origin + ray.direction * t;
+			for (int i = 0; i < 3; i++) { // check if x y z in bounds
+				if (point[i] < min_coord[i] || point[i] > max_coord[i]) {
+					// oh no it's out of bounds
+					return false;
+				}
+			}
+		}
+		info.t = t;
+		info.normal = normalize(n);
+		info.pos = ray.origin + ray.direction * t;
+	
+		return true;
+		*/
+	}
+	return false;
+	
+} /* intersect_plane */
+
+
+bool intersect_cube
+
+	(Ray       ray,  /* ray for the intersection */
+	 float     mint, /* lower bound for t */
+	 float     maxt, /* upper bound for t */
+	 vec3      coord,/* BOTTOM LEFT FRONT grid coord of cube */
+	 out Isect info) /* intersection data */
+	 
+{
+	float closest_t = INF;
+	info.t = closest_t;
+	info.pos = vec3(0);
+	info.normal = vec3(0);
+	Isect temp_isect;
+
+	// need to test intersection on all faces
+	// front
+	if (intersect_face(ray, vec3(coord.x + 0.5, coord.y + 0.5, coord.z), // point on plane (did middle of face just for consistency)
+							vec3(coord.x, coord.y, coord.z), /* min coord of face) */
+							vec3(coord.x + 1, coord.y + 1, coord.z), /* max coord of face) */
+							vec3(0, 0, 1), //normal,    /* normal of the plane (not necessarily unit length) */
+	 						mint, maxt, temp_isect)) {
+		if (temp_isect.t < closest_t) {
+			info = temp_isect;
+		}
+	}
+	
+	info.normal = closest_t<INF? normalize(info.normal) : vec3(0);
+					
+	info.pos = closest_t<INF? ray.origin + info.t * ray.direction : vec3(0);
+	
+	return closest_t<INF;
+	
+} /* intersect_cube */
+
+/*--------------------------------------------------------------------------*/
+
+bool intersect_cubes_scene
+
+	(Ray       ray,  /* ray for the intersection */
+	 float     mint, /* lower bound for t */
+	 float     maxt, /* upper bound for t */
+	 out Isect info) /* intersection data */
+	 
+{
+	float closest_t = INF;
+	info.t = closest_t;
+	info.pos = vec3(0);
+	info.normal = vec3(0);
+	Isect temp_isect;
+
+	/* intersect spheres */
+	for (int i = 0; i < spheres.length(); i++)
+	{
+		Sphere sphere = spheres[i];
+		
+		/* inverse transform on the ray, needs to be changed to 3x3/4x4 mat */
+		Ray temp_ray;
+		temp_ray.origin = (ray.origin - sphere.origin) / sphere.radius;
+		temp_ray.direction = ray.direction / sphere.radius;
+		
+        /*
+            g(x) = 0, x \in S
+            M(x) \in M(S) -> g(M^{-1}(x)) = 0 -> x \in S
+            
+        */
+        
+		//intersect_sphere(temp_ray, mint, closest_t, temp_isect);
+        intersect_sphere(temp_ray, mint, closest_t, temp_isect);
+		if (temp_isect.t<closest_t)
+		{
+			info = temp_isect;
+			Material mat = materials[int(sphere.mat_id.x)];
+			info.mat = convert_old_material(mat);
+		}
+		closest_t = min(temp_isect.t, closest_t);
+	}
+
+	/*
+	if (intersect_cube(ray, mint, maxt, vec3(0, 0, 0), temp_isect)) {
+		if (temp_isect.t < closest_t)
+		{
+			info = temp_isect;
+			Material mat = materials[1];
+			info.mat = convert_old_material(mat);
+			closest_t = temp_isect.t;
+		}
+	} */
 	
 	info.normal = closest_t<INF? normalize(info.normal) : vec3(0);
 					

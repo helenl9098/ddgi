@@ -24,7 +24,14 @@ glm::mat4 construct_camera_matrix(glm::vec3 translation, glm::vec3 rotation)
     return mat;
 }
 
-Camera::Camera(float aspect) : aspect(aspect) { recalculate_values(); }
+Camera::Camera(float aspect, glm::vec3 origin, glm::vec3 rotation) : aspect(aspect), translation(origin), rotation(rotation) { 
+    
+    // TO DO: Don't manually set FOV 
+    fov = 45;
+
+    recalculate_values(); 
+
+}
 
 void Camera::move(glm::vec3 translation)
 {

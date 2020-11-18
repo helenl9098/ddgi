@@ -92,19 +92,20 @@ void update_camera(Window& window, RVPT& rvpt)
 int main()
 {
     Window::Settings settings;
-    settings.width = 1024;
-    settings.height = 512;
+    settings.width = 1000;
+    settings.height = 1000;
     Window window(settings);
 
     RVPT rvpt(window);
 
-    load_model(rvpt, "models/rabbit.obj", 1);
+    load_model(rvpt, "models/cube.obj", 1);
 
     // Setup Demo Scene
-    rvpt.add_material(Material(glm::vec4(1, 1, 1, 0), glm::vec4(0.1, 0.4, 0.6, 0),
+    rvpt.add_material(Material(glm::vec4(0, 0, 1, 0), glm::vec4(2.0, 2.0, 2.0, 0),
                                Material::Type::LAMBERT));
-    rvpt.add_sphere(Sphere(glm::vec3(0, -100, 0), 100.f, 0));
-    rvpt.add_material(Material(glm::vec4(1.0, 1.0, 1.0, 0), glm::vec4(0), Material::Type::LAMBERT));
+    rvpt.add_sphere(Sphere(glm::vec3(1, 1.5, 1.5), 0.4f, 0));
+    rvpt.add_material(Material(glm::vec4(1.0, 0.0, 0.0, 0), glm::vec4(0), Material::Type::LAMBERT));
+    rvpt.add_material(Material(glm::vec4(0.0, 1.0, 0.0, 0), glm::vec4(0), Material::Type::LAMBERT));
 
     bool rvpt_init_ret = rvpt.initialize();
     if (!rvpt_init_ret)
